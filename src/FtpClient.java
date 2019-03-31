@@ -11,26 +11,21 @@ public class FtpClient {
     private static final int PORT = 21;
 
     //test
-    public static void main(String[] args) {
-        FtpClient ftp = new FtpClient("192.168.1.102", "test", "123456");
-        try {
-            ftp.toPASV();
-            //ftp.getFiles();
-            ftp.download("pic.png", "/Users/ichimaru/desktop");
-        } catch (Exception e) {
-            System.out.println("error " + e.getMessage());
-        }
-    }
+//    public static void main(String[] args) {
+//        FtpClient ftp = new FtpClient("192.168.1.102", "test", "123456");
+//        try {
+//            //ftp.toPASV();
+//            //ftp.getFiles();
+//            ftp.download("pic.png", "/Users/ichimaru/desktop");
+//        } catch (Exception e) {
+//            System.out.println("error " + e.getMessage());
+//        }
+//    }
 
     public FtpClient(String host, String username, String password) {
         this.host = host;
         this.username = username;
         this.password = password;
-        try {
-            connect();
-        } catch (Exception e) {
-
-        }
     }
 
     public void connect() throws Exception {
@@ -45,16 +40,14 @@ public class FtpClient {
         commandOut.write("USER " + username + "\r\n");
         commandOut.flush();
         msg = commandIn.readLine();
-        if (!msg.startsWith("331")) {
-            //TODO
-        }
+        if (!msg.startsWith("331"))
+            throw new Exception("Incorrect username or password");
         //send password
         commandOut.write("PASS " + password + "\r\n");
         commandOut.flush();
         msg = commandIn.readLine();
-        if (!msg.startsWith("230")) {
-            //TODO
-        }
+        if (!msg.startsWith("230"))
+            throw new Exception("Incorrect username or password");
         System.out.println(msg);
     }
 
@@ -70,7 +63,6 @@ public class FtpClient {
         //get the port
         int start = msg.indexOf('(');
         int end = msg.indexOf(')');
-        System.out.println(msg);
         msg = msg.substring(start, end);
         String[] nums = msg.split(",");
         port = Integer.parseInt(nums[4]) * 256 + Integer.parseInt(nums[5]);
@@ -94,11 +86,13 @@ public class FtpClient {
     public void inAscii() throws Exception {
         commandOut.write("TYPE A\r\n");
         commandOut.flush();
+        commandIn.readLine();
     }
 
     public void inBinary() throws Exception {
         commandOut.write("TYPE I\r\n");
         commandOut.flush();
+        commandIn.readLine();
     }
 
     public void upload(String filePath) throws Exception {
@@ -106,17 +100,24 @@ public class FtpClient {
     }
 
     public void download(String fileName, String dicPath) throws Exception {
-        String filePath = dicPath + "/" + fileName;
-        File file = new File(filePath);
-        Socket dataSocket = new Socket(host, port);
-        BufferedInputStream dataInput = new BufferedInputStream(dataSocket.getInputStream());
-        FileOutputStream dataOut = new FileOutputStream(file);
-        int n;
-        byte[] buffer = new byte[1024];
+        toPASV();
+        inBinary();
+        File file = new File(dicPath,fileName+".temp");
+        if(file.exists()) {
+            long size = file.length();
+            commandOut.write("REST "+ size +"\r\n");
+            commandOut.flush();
+        }
         commandOut.write("RETR " + fileName + "\r\n");
         commandOut.flush();
-        while ((n = dataInput.read(buffer)) > 0)
+        Socket dataSocket = new Socket(host, port);
+        BufferedInputStream dataInput = new BufferedInputStream(dataSocket.getInputStream());
+        FileOutputStream dataOut = new FileOutputStream(file,true);
+        int n;
+        byte[] buffer = new byte[1024];
+        while ((n = dataInput.read(buffer,0,1024)) > 0)
             dataOut.write(buffer, 0, n);
+        file.renameTo(new File(dicPath+'/'+fileName));
         dataInput.close();
         dataOut.close();
         dataSocket.close();
