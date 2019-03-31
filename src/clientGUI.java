@@ -1,8 +1,11 @@
 import javax.swing.*;
+import javax.swing.filechooser.FileNameExtensionFilter;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
+import java.io.File;
+import java.io.FileNotFoundException;
 
-public class clientGUI extends JFrame{
+public class clientGUI extends JFrame {
     private JPanel mainPanel;
     private JPanel panelTop;
     private JTextArea txtAddr;
@@ -31,7 +34,7 @@ public class clientGUI extends JFrame{
     private static FtpClient ftp;
 
     public static void main(String[] args) {
-        clientGUI gui=new clientGUI();
+        clientGUI gui = new clientGUI();
         gui.setContentPane(new clientGUI().mainPanel);
         gui.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
         gui.pack();
@@ -40,33 +43,70 @@ public class clientGUI extends JFrame{
         gui.setResizable(false);
     }
 
-    public clientGUI(){
+    public clientGUI() {
         btnConnect.addActionListener(new ActionListener() {
             @Override
             public void actionPerformed(ActionEvent e) {
-                String host=txtAddr.getText();
-                String username=txtUsername.getText();
-                String password=String.valueOf(passwordField.getPassword());
-                if(host.length()==0){
-                    JOptionPane.showMessageDialog(null,"Hostname cannot be empty","Warning",JOptionPane.WARNING_MESSAGE);
+                String host = txtAddr.getText();
+                String username = txtUsername.getText();
+                String password = String.valueOf(passwordField.getPassword());
+                if (host.length() == 0) {
+                    JOptionPane.showMessageDialog(null, "Hostname cannot be empty", "Warning", JOptionPane.WARNING_MESSAGE);
                     return;
                 }
-                if(username.length()==0){
-                    JOptionPane.showMessageDialog(null,"Username cannot be empty","Warning",JOptionPane.WARNING_MESSAGE);
+                if (username.length() == 0) {
+                    JOptionPane.showMessageDialog(null, "Username cannot be empty", "Warning", JOptionPane.WARNING_MESSAGE);
                     return;
                 }
-                if(password.length()==0){
-                    JOptionPane.showMessageDialog(null,"Password cannot be empty","Warning",JOptionPane.WARNING_MESSAGE);
+                if (password.length() == 0) {
+                    JOptionPane.showMessageDialog(null, "Password cannot be empty", "Warning", JOptionPane.WARNING_MESSAGE);
                     return;
                 }
-                ftp=new FtpClient(host,username,password);
+                ftp = new FtpClient(host, username, password);
                 try {
                     ftp.connect();
-                }catch (Exception ex){
-                    JOptionPane.showMessageDialog(null,"Error: "+ex.getLocalizedMessage(),"Error",JOptionPane.ERROR_MESSAGE);
+                } catch (Exception ex) {
+                    JOptionPane.showMessageDialog(null, "Error: " + ex.getLocalizedMessage(), "Error", JOptionPane.ERROR_MESSAGE);
                     return;
                 }
-                JOptionPane.showMessageDialog(null,"Connect successfully","Message",JOptionPane.PLAIN_MESSAGE);
+                JOptionPane.showMessageDialog(null, "Connect successfully", "Message", JOptionPane.PLAIN_MESSAGE);
+            }
+        });
+
+        btnBrowse.addActionListener(new ActionListener() {
+            @Override
+            public void actionPerformed(ActionEvent e) {
+                JFileChooser chooser = new JFileChooser();
+                chooser.setDialogTitle("Please choose a file");
+                chooser.setMultiSelectionEnabled(false);//最多只能选一个文件
+                FileNameExtensionFilter filter = new FileNameExtensionFilter("for test(*.java, *.py)", "java", "py");
+                chooser.setFileFilter(filter);
+                chooser.showOpenDialog(btnBrowse);
+//                File f = chooser.getSelectedFile();
+//                try {
+//
+//                }
+//                catch (FileNotFoundException e){
+//                    e.printStackTrace();
+//                }
+
+            }
+        });
+
+        btnChoose.addActionListener(new ActionListener() {
+            @Override
+            public void actionPerformed(ActionEvent e) {
+                JFileChooser chooser = new JFileChooser();
+                chooser.setDialogTitle("Please choose a directory");
+                chooser.setApproveButtonText("OK");
+                chooser.setFileSelectionMode(JFileChooser.DIRECTORIES_ONLY);
+                FileNameExtensionFilter filter = new FileNameExtensionFilter("directory", "./");
+                chooser.setFileFilter(filter);
+//                chooser.showOpenDialog(btnChoose);
+                if (JFileChooser.APPROVE_OPTION == chooser.showOpenDialog(btnChoose)) {
+                    String path = chooser.getSelectedFile().getPath();
+                    lblDestDir.setText(path);
+                }
             }
         });
     }

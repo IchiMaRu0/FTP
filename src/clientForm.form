@@ -26,12 +26,9 @@
           <component id="8a645" class="javax.swing.JTextArea" binding="txtUsername">
             <constraints/>
             <properties>
-              <preferredSize width="70" height="17"/>
+              <preferredSize width="90" height="17"/>
             </properties>
           </component>
-          <hspacer id="28149">
-            <constraints/>
-          </hspacer>
           <component id="bd3c0" class="javax.swing.JLabel">
             <constraints/>
             <properties>
@@ -41,12 +38,9 @@
           <component id="fb468" class="javax.swing.JPasswordField" binding="passwordField">
             <constraints/>
             <properties>
-              <preferredSize width="60" height="20"/>
+              <preferredSize width="90" height="20"/>
             </properties>
           </component>
-          <hspacer id="76354">
-            <constraints/>
-          </hspacer>
           <component id="59119" class="javax.swing.JLabel" binding="lblAddr">
             <constraints/>
             <properties>
@@ -59,13 +53,10 @@
               <preferredSize width="160" height="17"/>
             </properties>
           </component>
-          <hspacer id="46fa2">
-            <constraints/>
-          </hspacer>
           <component id="9698" class="javax.swing.JButton" binding="btnConnect">
             <constraints/>
             <properties>
-              <preferredSize width="70" height="30"/>
+              <preferredSize width="80" height="30"/>
               <text value="connect"/>
             </properties>
           </component>
@@ -131,14 +122,15 @@
                   <maximumSize width="9999" height="9999"/>
                   <minimumSize width="0" height="16"/>
                   <opaque value="false"/>
-                  <preferredSize width="400" height="16"/>
+                  <preferredSize width="350" height="16"/>
                   <text value="this is a test sentence to see the label position too"/>
                 </properties>
               </component>
               <component id="dc81c" class="javax.swing.JButton" binding="btnChoose">
                 <constraints/>
                 <properties>
-                  <text value="Browse"/>
+                  <preferredSize width="135" height="30"/>
+                  <text value="Choose Directory"/>
                 </properties>
               </component>
             </children>
