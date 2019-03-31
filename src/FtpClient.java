@@ -1,5 +1,6 @@
 import java.io.*;
 import java.net.Socket;
+import java.util.*;
 
 public class FtpClient {
     private String username;
@@ -10,13 +11,12 @@ public class FtpClient {
     private int port = 21;
     private static final int PORT = 21;
 
-    //test
+//    //test
 //    public static void main(String[] args) {
 //        FtpClient ftp = new FtpClient("192.168.1.102", "test", "123456");
 //        try {
-//            //ftp.toPASV();
-//            //ftp.getFiles();
-//            ftp.download("pic.png", "/Users/ichimaru/desktop");
+//            ftp.connect();
+//            List<String[]> files=ftp.getFiles();
 //        } catch (Exception e) {
 //            System.out.println("error " + e.getMessage());
 //        }
@@ -57,9 +57,8 @@ public class FtpClient {
         commandOut.write("PASV\r\n");
         commandOut.flush();
         msg = commandIn.readLine();
-        if (!msg.startsWith("227")) {
-            //TODO
-        }
+        if (!msg.startsWith("227"))
+            throw new Exception("Cannot change to passive mode");
         //get the port
         int start = msg.indexOf('(');
         int end = msg.indexOf(')');
@@ -69,18 +68,28 @@ public class FtpClient {
         System.out.println(port);
     }
 
-    public void getFiles() throws Exception {
+    public List<String[]> getFiles() throws Exception {
+        toPASV();
         commandOut.write("LIST\r\n");
         commandOut.flush();
         Socket dataSocket = new Socket(host, port);
         BufferedReader dataIn = new BufferedReader(new InputStreamReader(dataSocket.getInputStream()));
         String data = dataIn.readLine();
+        List<String[]> files = new ArrayList<>();
         while (data != null) {
-            System.out.println(data);
+            String[] split = data.split(" ");
+            String fileName = split[split.length - 1];
+            String[] fileInfo=new String[2];
+            fileInfo[0]=fileName;
+            fileInfo[1]="0";
+            if(data.contains("<DIR>"))
+                fileInfo[1]="1";
+            files.add(fileInfo);
             data = dataIn.readLine();
         }
         dataIn.close();
         dataSocket.close();
+        return files;
     }
 
     public void inAscii() throws Exception {
@@ -102,22 +111,22 @@ public class FtpClient {
     public void download(String fileName, String dicPath) throws Exception {
         toPASV();
         inBinary();
-        File file = new File(dicPath,fileName+".temp");
-        if(file.exists()) {
+        File file = new File(dicPath, fileName + ".temp");
+        if (file.exists()) {
             long size = file.length();
-            commandOut.write("REST "+ size +"\r\n");
+            commandOut.write("REST " + size + "\r\n");
             commandOut.flush();
         }
         commandOut.write("RETR " + fileName + "\r\n");
         commandOut.flush();
         Socket dataSocket = new Socket(host, port);
         BufferedInputStream dataInput = new BufferedInputStream(dataSocket.getInputStream());
-        FileOutputStream dataOut = new FileOutputStream(file,true);
+        FileOutputStream dataOut = new FileOutputStream(file, true);
         int n;
         byte[] buffer = new byte[1024];
-        while ((n = dataInput.read(buffer,0,1024)) > 0)
+        while ((n = dataInput.read(buffer, 0, 1024)) > 0)
             dataOut.write(buffer, 0, n);
-        file.renameTo(new File(dicPath+'/'+fileName));
+        file.renameTo(new File(dicPath + '/' + fileName));
         dataInput.close();
         dataOut.close();
         dataSocket.close();

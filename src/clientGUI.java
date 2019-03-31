@@ -70,6 +70,7 @@ public class clientGUI extends JFrame {
                     return;
                 }
                 JOptionPane.showMessageDialog(null, "Connect successfully", "Message", JOptionPane.PLAIN_MESSAGE);
+
             }
         });
 
@@ -109,5 +110,9 @@ public class clientGUI extends JFrame {
                 }
             }
         });
+    }
+
+    public void showFiles(){
+
     }
 }
