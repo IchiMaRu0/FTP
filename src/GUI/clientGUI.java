@@ -1,12 +1,15 @@
+package GUI;
+
 import javax.swing.*;
 
-public class testGUI {
+public class clientGUI {
     public static void main(String[] args) {
-        JFrame frame = new JFrame("testGUI");
-        frame.setContentPane(new testGUI().mainPanel);
+        JFrame frame = new JFrame("clientGUI");
+        frame.setContentPane(new clientGUI().mainPanel);
         frame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
         frame.pack();
         frame.setVisible(true);
+        frame.setResizable(false);
     }
 
     private JPanel mainPanel;
@@ -30,4 +33,7 @@ public class testGUI {
     private JButton btnPause;
     private JButton btnCancel;
     private JButton btnRefresh;
+    private JTable tblInfo;
+    private JScrollPane jsp;
+    private JLabel lblProgress;
 }
