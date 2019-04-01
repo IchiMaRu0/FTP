@@ -1,9 +1,13 @@
 import javax.swing.*;
 import javax.swing.filechooser.FileNameExtensionFilter;
+import javax.swing.tree.DefaultMutableTreeNode;
+import java.awt.*;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.io.File;
 import java.io.FileNotFoundException;
+import java.util.ArrayList;
+import java.util.List;
 
 public class clientGUI extends JFrame {
     private JPanel mainPanel;
@@ -27,7 +31,6 @@ public class clientGUI extends JFrame {
     private JButton btnPause;
     private JButton btnCancel;
     private JButton btnRefresh;
-    private JTable tblInfo;
     private JScrollPane jsp;
     private JLabel lblProgress;
 
@@ -70,7 +73,7 @@ public class clientGUI extends JFrame {
                     return;
                 }
                 JOptionPane.showMessageDialog(null, "Connect successfully", "Message", JOptionPane.PLAIN_MESSAGE);
-
+                showFiles();
             }
         });
 
@@ -113,6 +116,28 @@ public class clientGUI extends JFrame {
     }
 
     public void showFiles(){
+        panelCenter.remove(jsp);
+        JTree fileTree=new JTree(buildTree("/"));
+        jsp=new JScrollPane(fileTree);
+        panelCenter.add(jsp);
+        panelCenter.updateUI();
+    }
 
+    private DefaultMutableTreeNode buildTree(String s){
+        DefaultMutableTreeNode p=new DefaultMutableTreeNode(s);
+        try{
+            ftp.changeDir(s);
+            List<String[]> files=ftp.getFiles();
+            for(String[] fileInfo:files){
+                if(fileInfo[1].equals("1"))
+                    p.add(buildTree(fileInfo[0]));
+                else
+                    p.add(new DefaultMutableTreeNode(fileInfo[0]));
+            }
+            ftp.changeUp();
+        }catch(Exception ex){
+            System.out.println("111");
+        }
+        return p;
     }
 }

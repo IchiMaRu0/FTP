@@ -16,9 +16,17 @@ public class FtpClient {
 //        FtpClient ftp = new FtpClient("192.168.1.102", "test", "123456");
 //        try {
 //            ftp.connect();
+//            ftp.changeDir("/");
 //            List<String[]> files=ftp.getFiles();
+//            for(String[] s:files)
+//                System.out.println(s[0]);
+//            ftp.changeDir("aaa");
+//            files=ftp.getFiles();
+//            for(String[] s:files)
+//                System.out.println(s[0]);
+//            ftp.changeUp();
 //        } catch (Exception e) {
-//            System.out.println("error " + e.getMessage());
+//            System.out.println("error: " + e.getMessage());
 //        }
 //    }
 
@@ -48,7 +56,6 @@ public class FtpClient {
         msg = commandIn.readLine();
         if (!msg.startsWith("230"))
             throw new Exception("Incorrect username or password");
-        System.out.println(msg);
     }
 
     public void toPASV() throws Exception {
@@ -65,13 +72,13 @@ public class FtpClient {
         msg = msg.substring(start, end);
         String[] nums = msg.split(",");
         port = Integer.parseInt(nums[4]) * 256 + Integer.parseInt(nums[5]);
-        System.out.println(port);
     }
 
     public List<String[]> getFiles() throws Exception {
         toPASV();
         commandOut.write("LIST\r\n");
         commandOut.flush();
+        commandIn.readLine();
         Socket dataSocket = new Socket(host, port);
         BufferedReader dataIn = new BufferedReader(new InputStreamReader(dataSocket.getInputStream()));
         String data = dataIn.readLine();
@@ -87,9 +94,26 @@ public class FtpClient {
             files.add(fileInfo);
             data = dataIn.readLine();
         }
+        commandIn.readLine();
         dataIn.close();
         dataSocket.close();
         return files;
+    }
+
+    public void changeDir(String s) throws Exception{
+        commandOut.write("CWD "+s+"\r\n");
+        commandOut.flush();
+        String msg=commandIn.readLine();
+        if(!msg.startsWith("250"))
+            throw new Exception("Cannot change to the named director");
+    }
+
+    public void changeUp() throws Exception{
+        commandOut.write("CDUP\r\n");
+        commandOut.flush();
+        String msg=commandIn.readLine();
+        if(!msg.startsWith("250"))
+            throw new Exception("Cannot change to the parent director");
     }
 
     public void inAscii() throws Exception {

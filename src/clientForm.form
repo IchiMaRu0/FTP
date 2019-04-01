@@ -2,7 +2,7 @@
 <form xmlns="http://www.intellij.com/uidesigner/form/" version="1" bind-to-class="clientGUI">
   <grid id="27dc6" binding="mainPanel" layout-manager="BorderLayout" hgap="0" vgap="0">
     <constraints>
-      <xy x="20" y="20" width="500" height="400"/>
+      <xy x="20" y="20" width="539" height="400"/>
     </constraints>
     <properties>
       <enabled value="false"/>
@@ -27,6 +27,7 @@
             <constraints/>
             <properties>
               <preferredSize width="90" height="17"/>
+              <text value="test"/>
             </properties>
           </component>
           <component id="bd3c0" class="javax.swing.JLabel">
@@ -39,6 +40,7 @@
             <constraints/>
             <properties>
               <preferredSize width="90" height="20"/>
+              <text value="123456"/>
             </properties>
           </component>
           <component id="59119" class="javax.swing.JLabel" binding="lblAddr">
@@ -51,6 +53,7 @@
             <constraints/>
             <properties>
               <preferredSize width="160" height="17"/>
+              <text value="192.168.1.102"/>
             </properties>
           </component>
           <component id="9698" class="javax.swing.JButton" binding="btnConnect">
@@ -135,15 +138,9 @@
               </component>
             </children>
           </grid>
-          <component id="5180d" class="javax.swing.JTable" binding="tblInfo">
+          <scrollpane id="7ad17" binding="jsp">
             <constraints border-constraint="Center"/>
             <properties/>
-          </component>
-          <scrollpane id="54a06" binding="jsp">
-            <constraints border-constraint="East"/>
-            <properties>
-              <preferredSize width="15" height="0"/>
-            </properties>
             <border type="none"/>
             <children/>
           </scrollpane>
