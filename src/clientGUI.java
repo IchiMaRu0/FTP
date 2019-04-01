@@ -190,6 +190,12 @@ class FileTreeRenderer extends DefaultTreeCellRenderer {
         DefaultMutableTreeNode node = (DefaultMutableTreeNode) value;
         FileNode fileNode = (FileNode) node.getUserObject();
         String name = fileNode.name;
+        if(fileNode.isDir){
+            label.setText(name);
+            label.setOpaque(false);
+            return label;
+        }
+        //so stupid
         File file = null;
         try {
             if (name.contains(".") && !name.endsWith("."))
