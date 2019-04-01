@@ -1,6 +1,10 @@
 import javax.swing.*;
+import javax.swing.event.TreeExpansionEvent;
+import javax.swing.event.TreeExpansionListener;
+import javax.swing.event.TreeWillExpandListener;
 import javax.swing.filechooser.FileNameExtensionFilter;
-import javax.swing.tree.DefaultMutableTreeNode;
+import javax.swing.filechooser.FileSystemView;
+import javax.swing.tree.*;
 import java.awt.*;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
@@ -33,6 +37,7 @@ public class clientGUI extends JFrame {
     private JButton btnRefresh;
     private JScrollPane jsp;
     private JLabel lblProgress;
+    private JTree fileTree;
 
     private static FtpClient ftp;
 
@@ -115,29 +120,109 @@ public class clientGUI extends JFrame {
         });
     }
 
-    public void showFiles(){
+    public void showFiles() {
         panelCenter.remove(jsp);
-        JTree fileTree=new JTree(buildTree("/"));
-        jsp=new JScrollPane(fileTree);
+        fileTree=new JTree();
+        FileTreeModel model=new FileTreeModel(new DefaultMutableTreeNode(new FileNode("/",true,false)),ftp);
+        fileTree.setModel(model);
+        fileTree.setCellRenderer(new FileTreeRenderer());
+        fileTree.addTreeWillExpandListener(new TreeWillExpandListener() {
+            @Override
+            public void treeWillExpand(TreeExpansionEvent event) throws ExpandVetoException {
+                DefaultMutableTreeNode lastTreeNode = (DefaultMutableTreeNode) event.getPath().getLastPathComponent();
+                FileNode fileNode = (FileNode) lastTreeNode.getUserObject();
+                if(!fileNode.isDir)
+                    return;
+                if (!fileNode.isInit) {
+                    String s = "";
+                    for (Object o : lastTreeNode.getUserObjectPath())
+                        s += "/"+((FileNode) o).name;
+                    try {
+                        ftp.changeDir(s);
+                        List<String[]> files = ftp.getFiles();
+                        for (String[] fileInfo : files)
+                            lastTreeNode.add(new DefaultMutableTreeNode(new FileNode(fileInfo[0],fileInfo[1].equals("1"),false)));
+                    } catch (Exception ex) {
+
+                    }
+                    DefaultTreeModel treeModel = (DefaultTreeModel) fileTree.getModel();
+                    treeModel.nodeStructureChanged(lastTreeNode);
+                    System.out.println(s);
+                }
+                fileNode.isInit = true;
+            }
+
+            @Override
+            public void treeWillCollapse(TreeExpansionEvent event) throws ExpandVetoException {
+            }
+        });
+        jsp = new JScrollPane(fileTree);
         panelCenter.add(jsp);
         panelCenter.updateUI();
     }
+}
 
-    private DefaultMutableTreeNode buildTree(String s){
-        DefaultMutableTreeNode p=new DefaultMutableTreeNode(s);
-        try{
-            ftp.changeDir(s);
-            List<String[]> files=ftp.getFiles();
-            for(String[] fileInfo:files){
-                if(fileInfo[1].equals("1"))
-                    p.add(buildTree(fileInfo[0]));
-                else
-                    p.add(new DefaultMutableTreeNode(fileInfo[0]));
-            }
-            ftp.changeUp();
-        }catch(Exception ex){
-            System.out.println("111");
+class FileNode {
+    public String name;
+    public boolean isDir;
+    public boolean isInit;
+
+    public FileNode(String name, boolean isDir, boolean isInit) {
+        this.name = name;
+        this.isDir = isDir;
+        this.isInit = isInit;
+    }
+}
+
+class FileTreeRenderer extends DefaultTreeCellRenderer {
+    public FileTreeRenderer() {
+    }
+
+    @Override
+    public Component getTreeCellRendererComponent(javax.swing.JTree tree,
+                                                  java.lang.Object value,
+                                                  boolean sel,
+                                                  boolean expanded,
+                                                  boolean leaf,
+                                                  int row,
+                                                  boolean hasFocus) {
+        JLabel label = (JLabel) super.getTreeCellRendererComponent(tree, value, sel, expanded, leaf, row, hasFocus);
+        DefaultMutableTreeNode node = (DefaultMutableTreeNode) value;
+        FileNode fileNode = (FileNode) node.getUserObject();
+        String name = fileNode.name;
+        File file = null;
+        try {
+            if (name.contains(".") && !name.endsWith("."))
+                file = File.createTempFile("icon", name.substring(name.indexOf(".")));
+            else
+                file = File.createTempFile("icon", "");
+        } catch (Exception ex) {
+            System.out.println(ex.getMessage());
         }
-        return p;
+        label.setText(name);
+        final JFileChooser fc = new JFileChooser();
+        label.setIcon(fc.getUI().getFileView(fc).getIcon(file));
+        label.setOpaque(false);
+        file.delete();
+        return label;
+    }
+}
+
+class FileTreeModel extends DefaultTreeModel {
+    public FileTreeModel(TreeNode root,FtpClient ftp) {
+        super(root);
+        try {
+            List<String[]> files = ftp.getFiles();
+            for (String[] fileInfo : files)
+                ((DefaultMutableTreeNode)root).add(new DefaultMutableTreeNode(new FileNode(fileInfo[0], fileInfo[1].equals("1"), false)));
+        } catch (Exception ex) {
+
+        }
+    }
+    @Override
+    public boolean isLeaf(Object node) {
+        DefaultMutableTreeNode treeNode=(DefaultMutableTreeNode)node;
+        FileNode fileNode=(FileNode)treeNode.getUserObject();
+        return !fileNode.isDir;
     }
 }
