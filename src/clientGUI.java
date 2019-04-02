@@ -1,7 +1,5 @@
 import javax.swing.*;
-import javax.swing.event.TreeExpansionEvent;
-import javax.swing.event.TreeExpansionListener;
-import javax.swing.event.TreeWillExpandListener;
+import javax.swing.event.*;
 import javax.swing.filechooser.FileNameExtensionFilter;
 import javax.swing.filechooser.FileSystemView;
 import javax.swing.tree.*;
@@ -40,6 +38,7 @@ public class clientGUI extends JFrame {
     private JTree fileTree;
 
     private static FtpClient ftp;
+    private StringBuilder filePath;
 
     public static void main(String[] args) {
         clientGUI gui = new clientGUI();
@@ -52,6 +51,7 @@ public class clientGUI extends JFrame {
     }
 
     public clientGUI() {
+        filePath=new StringBuilder();
         btnConnect.addActionListener(new ActionListener() {
             @Override
             public void actionPerformed(ActionEvent e) {
@@ -134,11 +134,11 @@ public class clientGUI extends JFrame {
                 if(!fileNode.isDir)
                     return;
                 if (!fileNode.isInit) {
-                    String s = "";
+                    StringBuilder s=new StringBuilder();
                     for (Object o : lastTreeNode.getUserObjectPath())
-                        s += "/"+((FileNode) o).name;
+                        s.append("/"+((FileNode) o).name);
                     try {
-                        ftp.changeDir(s);
+                        ftp.changeDir(s.toString());
                         List<String[]> files = ftp.getFiles();
                         for (String[] fileInfo : files)
                             lastTreeNode.add(new DefaultMutableTreeNode(new FileNode(fileInfo[0],fileInfo[1].equals("1"),false)));
@@ -147,13 +147,30 @@ public class clientGUI extends JFrame {
                     }
                     DefaultTreeModel treeModel = (DefaultTreeModel) fileTree.getModel();
                     treeModel.nodeStructureChanged(lastTreeNode);
-                    System.out.println(s);
                 }
                 fileNode.isInit = true;
             }
 
             @Override
             public void treeWillCollapse(TreeExpansionEvent event) throws ExpandVetoException {
+            }
+        });
+
+        fileTree.addTreeSelectionListener(new TreeSelectionListener() {
+            @Override
+            public void valueChanged(TreeSelectionEvent e) {
+                DefaultMutableTreeNode lastTreeNode = (DefaultMutableTreeNode) e.getPath().getLastPathComponent();
+                FileNode fileNode = (FileNode) lastTreeNode.getUserObject();
+                filePath.setLength(0);
+                if(!fileNode.isDir){
+                    for (Object o : lastTreeNode.getUserObjectPath())
+                        filePath.append("/"+((FileNode) o).name);
+                    System.out.println(filePath.toString());
+                }
+                else {
+                    filePath.setLength(0);
+                    System.out.println(filePath.toString());
+                }
             }
         });
         jsp = new JScrollPane(fileTree);
