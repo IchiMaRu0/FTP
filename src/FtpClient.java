@@ -11,21 +11,6 @@ public class FtpClient {
     private int port = 21;
     private static final int PORT = 21;
 
-    //test
-    public static void main(String[] args) {
-        FtpClient ftp = new FtpClient("192.168.1.102", "test", "123456");
-        try {
-            ftp.connect();
-            try {
-                ftp.download("pic.png","/Users/ichimaru/desktop");
-            } catch (Exception ex) {
-
-            }
-        } catch (Exception e) {
-            System.out.println("error: " + e.getMessage());
-        }
-    }
-
     public FtpClient(String host, String username, String password) {
         this.host = host;
         this.username = username;
@@ -100,6 +85,7 @@ public class FtpClient {
         commandOut.write("SIZE " + s + "\r\n");
         commandOut.flush();
         String msg = commandIn.readLine();
+        System.out.println(msg);
         if (!msg.startsWith("213"))
             throw new Exception("Cannot get the size of " + s);
         int size;
@@ -151,6 +137,7 @@ public class FtpClient {
             long size = file.length();
             commandOut.write("REST " + size + "\r\n");
             commandOut.flush();
+            commandIn.readLine();
         }
         commandOut.write("RETR " + fileName + "\r\n");
         commandOut.flush();

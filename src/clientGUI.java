@@ -1,15 +1,11 @@
 import javax.swing.*;
-import javax.swing.event.*;
-import javax.swing.filechooser.FileNameExtensionFilter;
-import javax.swing.filechooser.FileSystemView;
+import javax.swing.event.ChangeEvent;
+import javax.swing.event.ChangeListener;
+import javax.swing.filechooser.*;
 import javax.swing.tree.*;
-import java.awt.*;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.io.File;
-import java.io.FileNotFoundException;
-import java.util.ArrayList;
-import java.util.List;
 
 public class clientGUI extends JFrame {
     private JPanel mainPanel;
@@ -35,10 +31,9 @@ public class clientGUI extends JFrame {
     private JButton btnRefresh;
     private JScrollPane jsp;
     private JLabel lblProgress;
-    private JTree fileTree;
+    private FileTree fileTree;
 
     private static FtpClient ftp;
-    private StringBuilder filePath;
 
     public static void main(String[] args) {
         clientGUI gui = new clientGUI();
@@ -51,7 +46,7 @@ public class clientGUI extends JFrame {
     }
 
     public clientGUI() {
-        filePath=new StringBuilder();
+        lblDestDir.setText(FileSystemView.getFileSystemView() .getHomeDirectory().getAbsolutePath());
         btnConnect.addActionListener(new ActionListener() {
             @Override
             public void actionPerformed(ActionEvent e) {
@@ -79,6 +74,48 @@ public class clientGUI extends JFrame {
                 }
                 JOptionPane.showMessageDialog(null, "Connect successfully", "Message", JOptionPane.PLAIN_MESSAGE);
                 showFiles();
+            }
+        });
+
+        btnDownload.addActionListener(new ActionListener() {
+            @Override
+            public void actionPerformed(ActionEvent e) {
+                //TODO
+                String fileName = fileTree.getFileName();
+                String filePath = fileTree.getFilePath();
+                if (fileName.equals("")) {
+                    JOptionPane.showMessageDialog(null, "Please select a file to download", "Eessage", JOptionPane.PLAIN_MESSAGE);
+                    return;
+                }
+                String desDic = lblDestDir.getText();
+                String desPath = desDic + "/" + fileName;
+                File file=new File(desPath);
+                if(file.exists()){
+                    int n=JOptionPane.showConfirmDialog(null,"File exists. Do you want to overide it?","Message",JOptionPane.YES_NO_OPTION,JOptionPane.PLAIN_MESSAGE);
+                    if(n==JOptionPane.NO_OPTION)
+                        return;
+                }
+                int size;
+                try {
+                    size = ftp.getSize(filePath);
+                } catch (Exception ex) {
+                    JOptionPane.showMessageDialog(null, ex.getMessage(), "Error", JOptionPane.PLAIN_MESSAGE);
+                    return;
+                }
+                //System.out.println(size);
+                //System.out.println(desPath);
+                progBar.setMinimum(0);
+                progBar.setMaximum(size);
+                progBar.setValue(0);
+                panelBottom.updateUI();
+                try {
+                    ftp.download(fileName, desDic);
+                }catch (Exception ex){
+                    JOptionPane.showMessageDialog(null,"Cannot download the file:\n"+ex.getMessage(),"Error",JOptionPane.ERROR_MESSAGE);
+                    return;
+                }
+                Progress progress = new Progress(progBar, desPath, size);
+                progress.start();
             }
         });
 
@@ -122,130 +159,12 @@ public class clientGUI extends JFrame {
 
     public void showFiles() {
         panelCenter.remove(jsp);
-        fileTree=new JTree();
-        FileTreeModel model=new FileTreeModel(new DefaultMutableTreeNode(new FileNode("/",true,false)),ftp);
+        fileTree = new FileTree(ftp);
+        FileTreeModel model = new FileTreeModel(new DefaultMutableTreeNode(new FileNode("/", true, false)), ftp);
         fileTree.setModel(model);
         fileTree.setCellRenderer(new FileTreeRenderer());
-        fileTree.addTreeWillExpandListener(new TreeWillExpandListener() {
-            @Override
-            public void treeWillExpand(TreeExpansionEvent event) throws ExpandVetoException {
-                DefaultMutableTreeNode lastTreeNode = (DefaultMutableTreeNode) event.getPath().getLastPathComponent();
-                FileNode fileNode = (FileNode) lastTreeNode.getUserObject();
-                if(!fileNode.isDir)
-                    return;
-                if (!fileNode.isInit) {
-                    StringBuilder s=new StringBuilder();
-                    for (Object o : lastTreeNode.getUserObjectPath())
-                        s.append("/"+((FileNode) o).name);
-                    try {
-                        ftp.changeDir(s.toString());
-                        List<String[]> files = ftp.getFiles();
-                        for (String[] fileInfo : files)
-                            lastTreeNode.add(new DefaultMutableTreeNode(new FileNode(fileInfo[0],fileInfo[1].equals("1"),false)));
-                    } catch (Exception ex) {
-
-                    }
-                    DefaultTreeModel treeModel = (DefaultTreeModel) fileTree.getModel();
-                    treeModel.nodeStructureChanged(lastTreeNode);
-                }
-                fileNode.isInit = true;
-            }
-
-            @Override
-            public void treeWillCollapse(TreeExpansionEvent event) throws ExpandVetoException {
-            }
-        });
-
-        fileTree.addTreeSelectionListener(new TreeSelectionListener() {
-            @Override
-            public void valueChanged(TreeSelectionEvent e) {
-                DefaultMutableTreeNode lastTreeNode = (DefaultMutableTreeNode) e.getPath().getLastPathComponent();
-                FileNode fileNode = (FileNode) lastTreeNode.getUserObject();
-                filePath.setLength(0);
-                if(!fileNode.isDir){
-                    for (Object o : lastTreeNode.getUserObjectPath())
-                        filePath.append("/"+((FileNode) o).name);
-                    System.out.println(filePath.toString());
-                }
-                else {
-                    filePath.setLength(0);
-                    System.out.println(filePath.toString());
-                }
-            }
-        });
         jsp = new JScrollPane(fileTree);
         panelCenter.add(jsp);
         panelCenter.updateUI();
-    }
-}
-
-class FileNode {
-    public String name;
-    public boolean isDir;
-    public boolean isInit;
-
-    public FileNode(String name, boolean isDir, boolean isInit) {
-        this.name = name;
-        this.isDir = isDir;
-        this.isInit = isInit;
-    }
-}
-
-class FileTreeRenderer extends DefaultTreeCellRenderer {
-    public FileTreeRenderer() {
-    }
-
-    @Override
-    public Component getTreeCellRendererComponent(javax.swing.JTree tree,
-                                                  java.lang.Object value,
-                                                  boolean sel,
-                                                  boolean expanded,
-                                                  boolean leaf,
-                                                  int row,
-                                                  boolean hasFocus) {
-        JLabel label = (JLabel) super.getTreeCellRendererComponent(tree, value, sel, expanded, leaf, row, hasFocus);
-        DefaultMutableTreeNode node = (DefaultMutableTreeNode) value;
-        FileNode fileNode = (FileNode) node.getUserObject();
-        String name = fileNode.name;
-        if(fileNode.isDir){
-            label.setText(name);
-            label.setOpaque(false);
-            return label;
-        }
-        //so stupid
-        File file = null;
-        try {
-            if (name.contains(".") && !name.endsWith("."))
-                file = File.createTempFile("icon", name.substring(name.indexOf(".")));
-            else
-                file = File.createTempFile("icon", "");
-        } catch (Exception ex) {
-            System.out.println(ex.getMessage());
-        }
-        label.setText(name);
-        final JFileChooser fc = new JFileChooser();
-        label.setIcon(fc.getUI().getFileView(fc).getIcon(file));
-        label.setOpaque(false);
-        file.delete();
-        return label;
-    }
-}
-
-class FileTreeModel extends DefaultTreeModel {
-    public FileTreeModel(TreeNode root,FtpClient ftp) {
-        super(root);
-        try {
-            List<String[]> files = ftp.getFiles();
-            for (String[] fileInfo : files)
-                ((DefaultMutableTreeNode)root).add(new DefaultMutableTreeNode(new FileNode(fileInfo[0], fileInfo[1].equals("1"), false)));
-        } catch (Exception ex) {
-
-        }
-    }
-    @Override
-    public boolean isLeaf(Object node) {
-        DefaultMutableTreeNode treeNode=(DefaultMutableTreeNode)node;
-        FileNode fileNode=(FileNode)treeNode.getUserObject();
-        return !fileNode.isDir;
     }
 }
