@@ -17,6 +17,14 @@ public class FtpClient {
         this.password = password;
     }
 
+    public BufferedReader getCommandIn() {
+        return commandIn;
+    }
+
+    public BufferedWriter getCommandOut() {
+        return commandOut;
+    }
+
     public void connect() throws Exception {
         //create socket
         Socket socket = new Socket(host, PORT);
@@ -129,7 +137,7 @@ public class FtpClient {
 
     }
 
-    public void download(String fileName, String dicPath) throws Exception {
+    public void download(String filePath, String fileName, String dicPath) throws Exception {
         toPASV();
         inBinary();
         File file = new File(dicPath, fileName + ".download");
@@ -139,7 +147,7 @@ public class FtpClient {
             commandOut.flush();
             commandIn.readLine();
         }
-        commandOut.write("RETR " + fileName + "\r\n");
+        commandOut.write("RETR " + filePath + "\r\n");
         commandOut.flush();
         commandIn.readLine();
         Socket dataSocket = new Socket(host, port);

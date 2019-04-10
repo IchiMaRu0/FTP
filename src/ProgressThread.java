@@ -1,12 +1,12 @@
 import javax.swing.*;
 import java.io.File;
 
-public class Progress extends Thread{
+public class ProgressThread extends Thread{
     private JProgressBar progBar;
     private String desFile;
     private int size;
 
-    public Progress(JProgressBar progBar,String desFile,int size){
+    public ProgressThread(JProgressBar progBar, String desFile, int size){
         this.progBar=progBar;
         this.desFile=desFile;
         this.size=size;

@@ -1,6 +1,4 @@
 import javax.swing.*;
-import javax.swing.event.ChangeEvent;
-import javax.swing.event.ChangeListener;
 import javax.swing.filechooser.*;
 import javax.swing.tree.*;
 import java.awt.event.ActionEvent;
@@ -94,6 +92,7 @@ public class clientGUI extends JFrame {
                     int n=JOptionPane.showConfirmDialog(null,"File exists. Do you want to overide it?","Message",JOptionPane.YES_NO_OPTION,JOptionPane.PLAIN_MESSAGE);
                     if(n==JOptionPane.NO_OPTION)
                         return;
+                    file.delete();
                 }
                 int size;
                 try {
@@ -102,19 +101,21 @@ public class clientGUI extends JFrame {
                     JOptionPane.showMessageDialog(null, ex.getMessage(), "Error", JOptionPane.PLAIN_MESSAGE);
                     return;
                 }
-                //System.out.println(size);
-                //System.out.println(desPath);
                 progBar.setMinimum(0);
                 progBar.setMaximum(size);
                 progBar.setValue(0);
                 panelBottom.updateUI();
-                try {
-                    ftp.download(fileName, desDic);
-                }catch (Exception ex){
-                    JOptionPane.showMessageDialog(null,"Cannot download the file:\n"+ex.getMessage(),"Error",JOptionPane.ERROR_MESSAGE);
-                    return;
-                }
-                Progress progress = new Progress(progBar, desPath, size);
+                new Thread(){
+                    @Override
+                    public void run() {
+                        try{
+                            ftp.download(filePath,fileName,desDic);
+                        }catch (Exception ex) {
+                            JOptionPane.showMessageDialog(null, "Cannot download the file:\n" + ex.getMessage(), "Error", JOptionPane.ERROR_MESSAGE);
+                        }
+                    }
+                }.start();
+                ProgressThread progress = new ProgressThread(progBar, desPath, size);
                 progress.start();
             }
         });
