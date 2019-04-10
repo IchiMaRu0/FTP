@@ -16,8 +16,10 @@ public class ProgressThread extends Thread{
         int currentSize=0;
         File file=new File(desFile+".download");
         do{
-            size=(int)file.length();
-            progBar.setValue(size);
+            currentSize=(int)file.length();
+            progBar.setValue(currentSize);
         } while (currentSize<size);
+        JOptionPane.showMessageDialog(null,"Download successfully","Message",JOptionPane.PLAIN_MESSAGE);
+        progBar.setValue(0);
     }
 }

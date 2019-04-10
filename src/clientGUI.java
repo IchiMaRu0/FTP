@@ -32,6 +32,8 @@ public class clientGUI extends JFrame {
     private FileTree fileTree;
 
     private static FtpClient ftp;
+    private boolean isCancelled;
+    private String desPath="";
 
     public static void main(String[] args) {
         clientGUI gui = new clientGUI();
@@ -44,6 +46,7 @@ public class clientGUI extends JFrame {
     }
 
     public clientGUI() {
+        isCancelled=false;
         lblDestDir.setText(FileSystemView.getFileSystemView() .getHomeDirectory().getAbsolutePath());
         btnConnect.addActionListener(new ActionListener() {
             @Override
@@ -78,7 +81,6 @@ public class clientGUI extends JFrame {
         btnDownload.addActionListener(new ActionListener() {
             @Override
             public void actionPerformed(ActionEvent e) {
-                //TODO
                 String fileName = fileTree.getFileName();
                 String filePath = fileTree.getFilePath();
                 if (fileName.equals("")) {
@@ -86,14 +88,19 @@ public class clientGUI extends JFrame {
                     return;
                 }
                 String desDic = lblDestDir.getText();
-                String desPath = desDic + "/" + fileName;
+                desPath = desDic + "/" + fileName;
                 File file=new File(desPath);
                 if(file.exists()){
                     int n=JOptionPane.showConfirmDialog(null,"File exists. Do you want to overide it?","Message",JOptionPane.YES_NO_OPTION,JOptionPane.PLAIN_MESSAGE);
-                    if(n==JOptionPane.NO_OPTION)
+                    if(n==JOptionPane.NO_OPTION){
+                        btnDownload.setEnabled(true);
+                        btnDownload.setText("Download");
                         return;
+                    }
                     file.delete();
                 }
+                btnDownload.setEnabled(false);
+                btnDownload.setText("Downloading");
                 int size;
                 try {
                     size = ftp.getSize(filePath);
@@ -111,12 +118,42 @@ public class clientGUI extends JFrame {
                         try{
                             ftp.download(filePath,fileName,desDic);
                         }catch (Exception ex) {
-                            JOptionPane.showMessageDialog(null, "Cannot download the file:\n" + ex.getMessage(), "Error", JOptionPane.ERROR_MESSAGE);
+                            if(!isCancelled)
+                                JOptionPane.showMessageDialog(null, "Cannot download the file:\n" + ex.getMessage(), "Error", JOptionPane.ERROR_MESSAGE);
+                            else{
+                                try {
+                                    ftp.getCommandIn().readLine();
+                                }catch(Exception exp){
+
+                                }
+                                isCancelled=false;
+                            }
                         }
+                        btnDownload.setEnabled(true);
+                        btnDownload.setText("Download");
                     }
                 }.start();
                 ProgressThread progress = new ProgressThread(progBar, desPath, size);
                 progress.start();
+            }
+        });
+
+        btnCancel.addActionListener(new ActionListener() {
+            @Override
+            public void actionPerformed(ActionEvent e) {
+                isCancelled = true;
+                try {
+                    ftp.cancel();
+                } catch (Exception ex) {
+                    System.out.println("Cannot cancel: " + ex.getMessage());
+                }
+                File file = new File(desPath + ".download");
+                if (file.exists()) {
+                    file.delete();
+                    JOptionPane.showMessageDialog(null, "Mission cancelled", "Message", JOptionPane.PLAIN_MESSAGE);
+                    btnDownload.setText("Download");
+                    btnDownload.setEnabled(true);
+                }
             }
         });
 

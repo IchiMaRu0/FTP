@@ -93,7 +93,6 @@ public class FtpClient {
         commandOut.write("SIZE " + s + "\r\n");
         commandOut.flush();
         String msg = commandIn.readLine();
-        System.out.println(msg);
         if (!msg.startsWith("213"))
             throw new Exception("Cannot get the size of " + s);
         int size;
@@ -131,6 +130,12 @@ public class FtpClient {
         commandOut.write("TYPE I\r\n");
         commandOut.flush();
         commandIn.readLine();
+    }
+
+    public void cancel() throws Exception{
+        commandOut.write("ABOR\r\n");
+        commandOut.flush();
+        System.out.println(commandIn.readLine());
     }
 
     public void upload(String filePath) throws Exception {

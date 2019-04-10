@@ -64,11 +64,9 @@ public class FileTree extends JTree {
                     for (Object o : lastTreeNode.getUserObjectPath())
                         filePath.append("/" + ((FileNode) o).name);
                     filePath.delete(0,2);
-                    System.out.println(filePath.toString());
                 } else {
                     filePath.setLength(0);
                     fileName = "";
-                    System.out.println(filePath.toString());
                 }
             }
         });
