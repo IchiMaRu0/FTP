@@ -114,7 +114,7 @@ public class clientGUI extends JFrame {
                 progBar.setValue(0);
                 panelBottom.updateUI();
                 progressThread = new ProgressThread(progBar, desPath, size);
-                downloadThread=new DownloadThread(ftp,filePath,fileName,desDic,btnDownload);
+                downloadThread=new DownloadThread(ftp,filePath,fileName,desDic,size,btnDownload);
                 progressThread.start();
                 downloadThread.start();
             }

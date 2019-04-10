@@ -5,14 +5,16 @@ public class DownloadThread extends Thread {
     private String filePath;
     private String fileName;
     private String desDic;
+    private int size;
     private boolean isCancelled;
     private JButton btnDownload;
 
-    public DownloadThread(FtpClient ftp, String filePath,String fileName,String desDic,JButton btnDownload){
+    public DownloadThread(FtpClient ftp, String filePath,String fileName,String desDic,int size,JButton btnDownload){
         this.ftp=ftp;
         this.filePath=filePath;
         this.fileName=fileName;
         this.desDic=desDic;
+        this.size=size;
         this.btnDownload=btnDownload;
         isCancelled=false;
     }
@@ -24,7 +26,7 @@ public class DownloadThread extends Thread {
     @Override
     public void run() {
         try{
-            ftp.download(filePath,fileName,desDic);
+            ftp.download(filePath,fileName,desDic,size);
             btnDownload.setEnabled(true);
             btnDownload.setText("Download");
         }catch (Exception ex) {

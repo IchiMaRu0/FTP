@@ -142,7 +142,7 @@ public class FtpClient {
 
     }
 
-    public void download(String filePath, String fileName, String dicPath) throws Exception {
+    public void download(String filePath, String fileName, String dicPath,int totalSize) throws Exception {
         toPASV();
         inBinary();
         File file = new File(dicPath, fileName + ".download");
@@ -163,6 +163,8 @@ public class FtpClient {
         while ((n = dataInput.read(buffer, 0, 1024)) > 0)
             dataOut.write(buffer, 0, n);
         commandIn.readLine();
+        if(file.length()!=totalSize)
+            return;
         file.renameTo(new File(dicPath + '/' + fileName));
         dataInput.close();
         dataOut.close();
