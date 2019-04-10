@@ -32,8 +32,9 @@ public class clientGUI extends JFrame {
     private FileTree fileTree;
 
     private static FtpClient ftp;
-    private boolean isCancelled;
     private String desPath="";
+    private ProgressThread progressThread;
+    private DownloadThread downloadThread;
 
     public static void main(String[] args) {
         clientGUI gui = new clientGUI();
@@ -46,7 +47,6 @@ public class clientGUI extends JFrame {
     }
 
     public clientGUI() {
-        isCancelled=false;
         lblDestDir.setText(FileSystemView.getFileSystemView() .getHomeDirectory().getAbsolutePath());
         btnConnect.addActionListener(new ActionListener() {
             @Override
@@ -112,36 +112,18 @@ public class clientGUI extends JFrame {
                 progBar.setMaximum(size);
                 progBar.setValue(0);
                 panelBottom.updateUI();
-                new Thread(){
-                    @Override
-                    public void run() {
-                        try{
-                            ftp.download(filePath,fileName,desDic);
-                        }catch (Exception ex) {
-                            if(!isCancelled)
-                                JOptionPane.showMessageDialog(null, "Cannot download the file:\n" + ex.getMessage(), "Error", JOptionPane.ERROR_MESSAGE);
-                            else{
-                                try {
-                                    ftp.getCommandIn().readLine();
-                                }catch(Exception exp){
-
-                                }
-                                isCancelled=false;
-                            }
-                        }
-                        btnDownload.setEnabled(true);
-                        btnDownload.setText("Download");
-                    }
-                }.start();
-                ProgressThread progress = new ProgressThread(progBar, desPath, size);
-                progress.start();
+                progressThread = new ProgressThread(progBar, desPath, size);
+                downloadThread=new DownloadThread(ftp,filePath,fileName,desDic,btnDownload);
+                progressThread.start();
+                downloadThread.start();
             }
         });
 
         btnCancel.addActionListener(new ActionListener() {
             @Override
             public void actionPerformed(ActionEvent e) {
-                isCancelled = true;
+                progressThread.interrupt();
+                downloadThread.setCancelled(true);
                 try {
                     ftp.cancel();
                 } catch (Exception ex) {
@@ -154,6 +136,13 @@ public class clientGUI extends JFrame {
                     btnDownload.setText("Download");
                     btnDownload.setEnabled(true);
                 }
+            }
+        });
+
+        btnPause.addActionListener(new ActionListener() {
+            @Override
+            public void actionPerformed(ActionEvent e) {
+
             }
         });
 
