@@ -16,10 +16,8 @@ public class ProgressThread extends Thread{
         int currentSize=0;
         File file=new File(desFile+".download");
         do{
-            if(this.isInterrupted()) {
-                progBar.setValue(0);
+            if(this.isInterrupted())
                 return;
-            }
             currentSize=(int)file.length();
             progBar.setValue(currentSize);
         } while (currentSize<size);

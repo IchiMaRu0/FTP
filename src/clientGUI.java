@@ -99,6 +99,7 @@ public class clientGUI extends JFrame {
                     }
                     file.delete();
                 }
+                btnPause.setEnabled(true);
                 btnDownload.setEnabled(false);
                 btnDownload.setText("Downloading");
                 int size;
@@ -122,6 +123,9 @@ public class clientGUI extends JFrame {
         btnCancel.addActionListener(new ActionListener() {
             @Override
             public void actionPerformed(ActionEvent e) {
+                File file = new File(desPath + ".download");
+                if(!file.exists())
+                    return;
                 progressThread.interrupt();
                 downloadThread.setCancelled(true);
                 try {
@@ -129,20 +133,28 @@ public class clientGUI extends JFrame {
                 } catch (Exception ex) {
                     System.out.println("Cannot cancel: " + ex.getMessage());
                 }
-                File file = new File(desPath + ".download");
-                if (file.exists()) {
-                    file.delete();
-                    JOptionPane.showMessageDialog(null, "Mission cancelled", "Message", JOptionPane.PLAIN_MESSAGE);
-                    btnDownload.setText("Download");
-                    btnDownload.setEnabled(true);
-                }
+                file.delete();
+                progBar.setValue(0);
+                JOptionPane.showMessageDialog(null, "Mission cancelled", "Message", JOptionPane.PLAIN_MESSAGE);
+                btnDownload.setText("Download");
+                btnDownload.setEnabled(true);
+                btnPause.setEnabled(true);
             }
         });
 
         btnPause.addActionListener(new ActionListener() {
             @Override
             public void actionPerformed(ActionEvent e) {
-
+                progressThread.interrupt();
+                downloadThread.setCancelled(true);
+                try {
+                    ftp.cancel();
+                } catch (Exception ex) {
+                    System.out.println("Cannot pause: " + ex.getMessage());
+                }
+                btnPause.setEnabled(false);
+                btnDownload.setText("Download");
+                btnDownload.setEnabled(true);
             }
         });
 
