@@ -27,12 +27,17 @@ public class clientGUI extends JFrame {
     private JButton btnPause;
     private JButton btnCancel;
     private JButton btnRefresh;
-    private JScrollPane jsp;
     private JLabel lblProgress;
+    private JPanel panelCenterMid;
+    private JPanel panelCenterMidLeft;
+    private JPanel panelCenterMidRight;
+    private JScrollPane jspLocal;
+    private JScrollPane jspFTP;
     private FileTree fileTree;
+    private LocalFileTree localFileTree;
 
     private static FtpClient ftp;
-    private String desPath="";
+    private String desPath = "";
     private ProgressThread progressThread;
     private DownloadThread downloadThread;
 
@@ -47,7 +52,7 @@ public class clientGUI extends JFrame {
     }
 
     public clientGUI() {
-        lblDestDir.setText(FileSystemView.getFileSystemView() .getHomeDirectory().getAbsolutePath());
+        lblDestDir.setText(FileSystemView.getFileSystemView().getHomeDirectory().getAbsolutePath());
         btnConnect.addActionListener(new ActionListener() {
             @Override
             public void actionPerformed(ActionEvent e) {
@@ -89,10 +94,10 @@ public class clientGUI extends JFrame {
                 }
                 String desDic = lblDestDir.getText();
                 desPath = desDic + "/" + fileName;
-                File file=new File(desPath);
-                if(file.exists()){
-                    int n=JOptionPane.showConfirmDialog(null,"File exists. Do you want to overide it?","Message",JOptionPane.YES_NO_OPTION,JOptionPane.PLAIN_MESSAGE);
-                    if(n==JOptionPane.NO_OPTION){
+                File file = new File(desPath);
+                if (file.exists()) {
+                    int n = JOptionPane.showConfirmDialog(null, "File exists. Do you want to overide it?", "Message", JOptionPane.YES_NO_OPTION, JOptionPane.PLAIN_MESSAGE);
+                    if (n == JOptionPane.NO_OPTION) {
                         btnDownload.setEnabled(true);
                         btnDownload.setText("Download");
                         return;
@@ -114,9 +119,16 @@ public class clientGUI extends JFrame {
                 progBar.setValue(0);
                 panelBottom.updateUI();
                 progressThread = new ProgressThread(progBar, desPath, size);
-                downloadThread=new DownloadThread(ftp,filePath,fileName,desDic,size,btnDownload);
+                downloadThread = new DownloadThread(ftp, filePath, fileName, desDic, size, btnDownload);
                 progressThread.start();
                 downloadThread.start();
+            }
+        });
+
+        btnUpload.addActionListener(new ActionListener() {
+            @Override
+            public void actionPerformed(ActionEvent e) {
+
             }
         });
 
@@ -124,7 +136,7 @@ public class clientGUI extends JFrame {
             @Override
             public void actionPerformed(ActionEvent e) {
                 File file = new File(desPath + ".download");
-                if(!file.exists())
+                if (!file.exists())
                     return;
                 progressThread.interrupt();
                 downloadThread.setCancelled(true);
@@ -162,19 +174,25 @@ public class clientGUI extends JFrame {
             @Override
             public void actionPerformed(ActionEvent e) {
                 JFileChooser chooser = new JFileChooser();
-                chooser.setDialogTitle("Please choose a file");
-                chooser.setMultiSelectionEnabled(false);//最多只能选一个文件
-                FileNameExtensionFilter filter = new FileNameExtensionFilter("for test(*.java, *.py)", "java", "py");
+                chooser.setDialogTitle("Please choose a directory");
+                //chooser.setMultiSelectionEnabled(false);//最多只能选一个文件
+                chooser.setApproveButtonText("OK");
+                chooser.setFileSelectionMode(JFileChooser.DIRECTORIES_ONLY);
+                FileNameExtensionFilter filter = new FileNameExtensionFilter("directory", "./");
                 chooser.setFileFilter(filter);
-                chooser.showOpenDialog(btnBrowse);
-//                File f = chooser.getSelectedFile();
-//                try {
-//
-//                }
-//                catch (FileNotFoundException e){
-//                    e.printStackTrace();
-//                }
+                if (JFileChooser.APPROVE_OPTION == chooser.showOpenDialog(btnBrowse)) {
+                    String path = chooser.getSelectedFile().getPath();
+                    lblFilePath.setText(path);
+                    showLocalFiles(path);
+                }
 
+            }
+        });
+
+        btnRefresh.addActionListener(new ActionListener() {
+            @Override
+            public void actionPerformed(ActionEvent e) {
+                showFiles();
             }
         });
 
@@ -192,18 +210,28 @@ public class clientGUI extends JFrame {
                     String path = chooser.getSelectedFile().getPath();
                     lblDestDir.setText(path);
                 }
+
             }
         });
     }
 
     public void showFiles() {
-        panelCenter.remove(jsp);
+        panelCenterMidLeft.remove(jspFTP);
         fileTree = new FileTree(ftp);
         FileTreeModel model = new FileTreeModel(new DefaultMutableTreeNode(new FileNode("/", true, false)), ftp);
         fileTree.setModel(model);
         fileTree.setCellRenderer(new FileTreeRenderer());
-        jsp = new JScrollPane(fileTree);
-        panelCenter.add(jsp);
-        panelCenter.updateUI();
+        jspFTP = new JScrollPane(fileTree);
+        panelCenterMidLeft.add(jspFTP);
+        panelCenterMidLeft.updateUI();
     }
+
+    public void showLocalFiles(String path) {
+        panelCenterMidRight.remove(jspLocal);
+        localFileTree = new LocalFileTree(path);
+        jspLocal = new JScrollPane(localFileTree);
+        panelCenterMidRight.add(jspLocal);
+        panelCenterMidRight.updateUI();
+    }
+
 }

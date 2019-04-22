@@ -72,7 +72,9 @@
         <children>
           <grid id="ad26" binding="panelCenterTop" layout-manager="FlowLayout" hgap="5" vgap="5" flow-align="1">
             <constraints border-constraint="North"/>
-            <properties/>
+            <properties>
+              <preferredSize width="677" height="40"/>
+            </properties>
             <border type="none"/>
             <children>
               <component id="1c339" class="javax.swing.JLabel" binding="lblFilePath">
@@ -138,12 +140,52 @@
               </component>
             </children>
           </grid>
-          <scrollpane id="7ad17" binding="jsp">
+          <grid id="dd2d0" binding="panelCenterMid" layout-manager="FlowLayout" hgap="5" vgap="5" flow-align="1">
             <constraints border-constraint="Center"/>
-            <properties/>
+            <properties>
+              <preferredSize width="677" height="30"/>
+            </properties>
             <border type="none"/>
-            <children/>
-          </scrollpane>
+            <children>
+              <grid id="273c" binding="panelCenterMidLeft" layout-manager="BorderLayout" hgap="0" vgap="0">
+                <constraints/>
+                <properties>
+                  <preferredSize width="300" height="400"/>
+                </properties>
+                <border type="none"/>
+                <children>
+                  <scrollpane id="56097" binding="jspFTP">
+                    <constraints border-constraint="Center"/>
+                    <properties>
+                      <minimumSize width="300" height="100"/>
+                      <opaque value="false"/>
+                      <preferredSize width="300" height="400"/>
+                    </properties>
+                    <border type="none"/>
+                    <children/>
+                  </scrollpane>
+                </children>
+              </grid>
+              <grid id="4fd35" binding="panelCenterMidRight" layout-manager="BorderLayout" hgap="0" vgap="0">
+                <constraints/>
+                <properties>
+                  <preferredSize width="300" height="400"/>
+                </properties>
+                <border type="none"/>
+                <children>
+                  <scrollpane id="b59c8" binding="jspLocal">
+                    <constraints border-constraint="Center"/>
+                    <properties>
+                      <minimumSize width="40" height="40"/>
+                      <preferredSize width="300" height="400"/>
+                    </properties>
+                    <border type="none"/>
+                    <children/>
+                  </scrollpane>
+                </children>
+              </grid>
+            </children>
+          </grid>
         </children>
       </grid>
       <grid id="ae3c7" binding="panelBottom" layout-manager="FlowLayout" hgap="5" vgap="5" flow-align="1">

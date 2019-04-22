@@ -132,17 +132,39 @@ public class FtpClient {
         commandIn.readLine();
     }
 
-    public void cancel() throws Exception{
+    public void cancel() throws Exception {
         commandOut.write("ABOR\r\n");
         commandOut.flush();
         System.out.println(commandIn.readLine());
     }
 
-    public void upload(String filePath) throws Exception {
 
+
+    public void upload(String filePath, String fileName) throws Exception {
+        toPASV();
+        inBinary();
+        File file = new File(filePath);
+        if (file.exists()) {
+            long size = file.length();
+            commandOut.write("REST " + size + "\r\n");
+            commandOut.flush();
+            commandIn.readLine();
+        }
+        Socket dataSocket = new Socket(host, port);
+        commandOut.write("STOR " + fileName);
+        BufferedOutputStream dataOut = new BufferedOutputStream(dataSocket.getOutputStream());
+        FileInputStream dataIn = new FileInputStream(file);
+        int n;
+        byte[] buffer = new byte[1024];
+        while ((n = dataIn.read(buffer, 0, 1024)) > 0)
+            dataOut.write(buffer, 0, n);
+        commandIn.readLine();
+        dataIn.close();
+        dataOut.close();
+        dataSocket.close();
     }
 
-    public void download(String filePath, String fileName, String dicPath,int totalSize) throws Exception {
+    public void download(String filePath, String fileName, String dicPath, int totalSize) throws Exception {
         toPASV();
         inBinary();
         File file = new File(dicPath, fileName + ".download");
@@ -156,17 +178,17 @@ public class FtpClient {
         commandOut.flush();
         commandIn.readLine();
         Socket dataSocket = new Socket(host, port);
-        BufferedInputStream dataInput = new BufferedInputStream(dataSocket.getInputStream());
+        BufferedInputStream dataIn = new BufferedInputStream(dataSocket.getInputStream());
         FileOutputStream dataOut = new FileOutputStream(file, true);
         int n;
         byte[] buffer = new byte[1024];
-        while ((n = dataInput.read(buffer, 0, 1024)) > 0)
+        while ((n = dataIn.read(buffer, 0, 1024)) > 0)
             dataOut.write(buffer, 0, n);
         commandIn.readLine();
-        if(file.length()!=totalSize)
+        if (file.length() != totalSize)
             return;
         file.renameTo(new File(dicPath + '/' + fileName));
-        dataInput.close();
+        dataIn.close();
         dataOut.close();
         dataSocket.close();
     }
