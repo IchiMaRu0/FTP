@@ -35,6 +35,7 @@ public class clientGUI extends JFrame {
     private JScrollPane jspFTP;
     private FileTree fileTree;
     private LocalFileTree localFileTree;
+    private JLabel lblTemp;
 
     private static FtpClient ftp;
     private String desPath = "";
@@ -184,6 +185,7 @@ public class clientGUI extends JFrame {
                     String path = chooser.getSelectedFile().getPath();
                     lblFilePath.setText(path);
                     showLocalFiles(path);
+
                 }
 
             }
@@ -205,7 +207,6 @@ public class clientGUI extends JFrame {
                 chooser.setFileSelectionMode(JFileChooser.DIRECTORIES_ONLY);
                 FileNameExtensionFilter filter = new FileNameExtensionFilter("directory", "./");
                 chooser.setFileFilter(filter);
-//                chooser.showOpenDialog(btnChoose);
                 if (JFileChooser.APPROVE_OPTION == chooser.showOpenDialog(btnChoose)) {
                     String path = chooser.getSelectedFile().getPath();
                     lblDestDir.setText(path);

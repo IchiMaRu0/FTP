@@ -1,8 +1,13 @@
 import java.awt.*;
 import java.io.File;
+import java.io.FileFilter;
 import java.util.*;
 import javax.swing.*;
 import javax.swing.border.EmptyBorder;
+import javax.swing.event.TreeExpansionEvent;
+import javax.swing.event.TreeSelectionEvent;
+import javax.swing.event.TreeSelectionListener;
+import javax.swing.event.TreeWillExpandListener;
 import javax.swing.filechooser.FileSystemView;
 import javax.swing.tree.DefaultTreeCellRenderer;
 import javax.swing.tree.TreeNode;
@@ -15,6 +20,17 @@ public class LocalFileTree extends JTree {
      * File system view.
      */
     protected static FileSystemView fsv = FileSystemView.getFileSystemView();
+
+    private StringBuilder filePath;
+    private String fileName;
+
+    public String getFilePath() {
+        return filePath.toString();
+    }
+
+    public String getFileName() {
+        return fileName;
+    }
 
     /**
      * Renderer for the file tree.
@@ -201,6 +217,7 @@ public class LocalFileTree extends JTree {
         public boolean isLeaf() {
             return (this.getChildCount() == 0);
         }
+
     }
 
     /**
@@ -213,38 +230,60 @@ public class LocalFileTree extends JTree {
      */
     public LocalFileTree(String path) {
         this.setLayout(new BorderLayout());
-//        File[] roots = File.listRoots();
-        File[] files = new File(path).listFiles();
-        for(File file : files){
-            filter(file);
-        }
+        File[] files = new File(path).listFiles(new FileFilter() {
+            @Override
+            public boolean accept(File pathname) {
+                return !pathname.isHidden() && !pathname.getPath().endsWith(".DS_Store");
+            }
+        });
         FileTreeNode rootTreeNode = new FileTreeNode(files);
         this.tree = new JTree(rootTreeNode);
         this.tree.setCellRenderer(new FileTreeCellRenderer());
         this.tree.setRootVisible(true);
+        this.tree.addTreeSelectionListener(new myListener());
         final JScrollPane jsp = new JScrollPane(this.tree);
         jsp.setBorder(new EmptyBorder(0, 0, 0, 0));
         this.add(jsp, BorderLayout.CENTER);
     }
 
-    public static void filter(File f){
-        if(f.exists()){
-            if(f.getName().startsWith("."))
-                f.delete();
+
+    class myListener implements TreeSelectionListener {
+        @Override
+        public void valueChanged(TreeSelectionEvent e) {
+            FileTreeNode node = (FileTreeNode) e.getPath().getLastPathComponent();
+            System.out.println(node.file.getName());
+            if (!node.file.isDirectory()) {
+                fileName = node.file.getName();
+                StringBuilder s = new StringBuilder();
+                s.append(node.file.getParent() + "/" + node.file.getName());
+                System.out.println("select " + s);
+            } else {
+                fileName = "";
+            }
+
         }
     }
 
-//    public static void main(String[] args) {
-//        SwingUtilities.invokeLater(new Runnable() {
-//            public void run() {
-//                JFrame frame = new JFrame("File tree");
-//                frame.setSize(500, 400);
-//                frame.setLocationRelativeTo(null);
-//                frame.add(new LocalFileTree());
-//                frame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
-//                frame.setVisible(true);
-//            }
-//        });
-//    }
+    class myExpandListener implements TreeWillExpandListener {
+        @Override
+        public void treeWillExpand(TreeExpansionEvent event) {
+            FileTreeNode node = (FileTreeNode) event.getPath().getLastPathComponent();
+            if (!node.file.isDirectory()) {
+                return;
+            }
+
+            StringBuilder s = new StringBuilder();
+            s.append("/" + node.file.getName());
+            System.out.println("expand: " + s);
+
+        }
+
+        @Override
+        public void treeWillCollapse(TreeExpansionEvent event) {
+
+        }
+    }
+
+
 }
   
