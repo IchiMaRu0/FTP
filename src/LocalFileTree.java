@@ -21,16 +21,18 @@ public class LocalFileTree extends JTree {
      */
     protected static FileSystemView fsv = FileSystemView.getFileSystemView();
 
-    private StringBuilder filePath;
+    private String filePath;
     private String fileName;
+    private JLabel fileLabel;
 
     public String getFilePath() {
-        return filePath.toString();
+        return filePath;
     }
 
     public String getFileName() {
         return fileName;
     }
+
 
     /**
      * Renderer for the file tree.
@@ -228,7 +230,9 @@ public class LocalFileTree extends JTree {
     /**
      * Creates the file tree panel.
      */
-    public LocalFileTree(String path) {
+    public LocalFileTree(String path, clientGUI myGUI) {
+        filePath = "";
+        fileName = "";
         this.setLayout(new BorderLayout());
         File[] files = new File(path).listFiles(new FileFilter() {
             @Override
@@ -240,50 +244,23 @@ public class LocalFileTree extends JTree {
         this.tree = new JTree(rootTreeNode);
         this.tree.setCellRenderer(new FileTreeCellRenderer());
         this.tree.setRootVisible(true);
-        this.tree.addTreeSelectionListener(new myListener());
-        final JScrollPane jsp = new JScrollPane(this.tree);
+        this.tree.addTreeSelectionListener(new TreeSelectionListener() {
+            @Override
+            public void valueChanged(TreeSelectionEvent e) {
+                FileTreeNode node = (FileTreeNode) e.getPath().getLastPathComponent();
+                fileName = node.file.getName();
+                System.out.println(fileName);
+                filePath = node.file.getParent() + "/" + node.file.getName();
+                System.out.println("select " + filePath);
+                myGUI.getLblFilePath().setText(filePath);
+            }
+        });
+//        this.tree.addTreeSelectionListener(new myListener());
+        JScrollPane jsp = new JScrollPane(this.tree);
         jsp.setBorder(new EmptyBorder(0, 0, 0, 0));
         this.add(jsp, BorderLayout.CENTER);
+
     }
-
-
-    class myListener implements TreeSelectionListener {
-        @Override
-        public void valueChanged(TreeSelectionEvent e) {
-            FileTreeNode node = (FileTreeNode) e.getPath().getLastPathComponent();
-            System.out.println(node.file.getName());
-            if (!node.file.isDirectory()) {
-                fileName = node.file.getName();
-                StringBuilder s = new StringBuilder();
-                s.append(node.file.getParent() + "/" + node.file.getName());
-                System.out.println("select " + s);
-            } else {
-                fileName = "";
-            }
-
-        }
-    }
-
-    class myExpandListener implements TreeWillExpandListener {
-        @Override
-        public void treeWillExpand(TreeExpansionEvent event) {
-            FileTreeNode node = (FileTreeNode) event.getPath().getLastPathComponent();
-            if (!node.file.isDirectory()) {
-                return;
-            }
-
-            StringBuilder s = new StringBuilder();
-            s.append("/" + node.file.getName());
-            System.out.println("expand: " + s);
-
-        }
-
-        @Override
-        public void treeWillCollapse(TreeExpansionEvent event) {
-
-        }
-    }
-
 
 }
   

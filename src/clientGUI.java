@@ -15,7 +15,7 @@ public class clientGUI extends JFrame {
     private JPanel panelCenter;
     private JPanel panelCenterTop;
     private JButton btnBrowse;
-    private JLabel lblFilePath;
+    private JLabel lblDirPath;
     private JPasswordField passwordField;
     private JPanel panelCenterBottom;
     private JButton btnDownload;
@@ -33,14 +33,20 @@ public class clientGUI extends JFrame {
     private JPanel panelCenterMidRight;
     private JScrollPane jspLocal;
     private JScrollPane jspFTP;
+    private JLabel lblFilePath;
     private FileTree fileTree;
     private LocalFileTree localFileTree;
-    private JLabel lblTemp;
 
     private static FtpClient ftp;
     private String desPath = "";
     private ProgressThread progressThread;
     private DownloadThread downloadThread;
+    private UploadThread uploadThread;
+
+
+    public JLabel getLblFilePath() {
+        return lblFilePath;
+    }
 
     public static void main(String[] args) {
         clientGUI gui = new clientGUI();
@@ -129,7 +135,42 @@ public class clientGUI extends JFrame {
         btnUpload.addActionListener(new ActionListener() {
             @Override
             public void actionPerformed(ActionEvent e) {
-
+                String fileName = localFileTree.getFileName();
+                String filePath = localFileTree.getFilePath();
+                if (fileName.equals("")) {
+                    JOptionPane.showMessageDialog(null, "Please select a file to download", "Eessage", JOptionPane.PLAIN_MESSAGE);
+                    return;
+                }
+                String desDic = lblDestDir.getText();
+                desPath = desDic + "/" + fileName;
+                File file = new File(desPath);
+                if (file.exists()) {
+                    int n = JOptionPane.showConfirmDialog(null, "File exists. Do you want to overide it?", "Message", JOptionPane.YES_NO_OPTION, JOptionPane.PLAIN_MESSAGE);
+                    if (n == JOptionPane.NO_OPTION) {
+                        btnUpload.setEnabled(true);
+                        btnUpload.setText("Upload");
+                        return;
+                    }
+                    file.delete();
+                }
+                btnPause.setEnabled(true);
+                btnUpload.setEnabled(false);
+                btnUpload.setText("Uploading");
+                int size;
+                try {
+                    size = ftp.getSize(filePath);
+                } catch (Exception ex) {
+                    JOptionPane.showMessageDialog(null, ex.getMessage(), "Error", JOptionPane.PLAIN_MESSAGE);
+                    return;
+                }
+//                progBar.setMinimum(0);
+//                progBar.setMaximum(size);
+//                progBar.setValue(0);
+                panelBottom.updateUI();
+                progressThread = new ProgressThread(progBar, desPath, size);
+                uploadThread = new UploadThread(ftp, filePath, fileName, desDic, size, btnUpload);
+                progressThread.start();
+                uploadThread.start();
             }
         });
 
@@ -183,11 +224,9 @@ public class clientGUI extends JFrame {
                 chooser.setFileFilter(filter);
                 if (JFileChooser.APPROVE_OPTION == chooser.showOpenDialog(btnBrowse)) {
                     String path = chooser.getSelectedFile().getPath();
-                    lblFilePath.setText(path);
+                    lblDirPath.setText(path);
                     showLocalFiles(path);
-
                 }
-
             }
         });
 
@@ -211,7 +250,6 @@ public class clientGUI extends JFrame {
                     String path = chooser.getSelectedFile().getPath();
                     lblDestDir.setText(path);
                 }
-
             }
         });
     }
@@ -229,8 +267,10 @@ public class clientGUI extends JFrame {
 
     public void showLocalFiles(String path) {
         panelCenterMidRight.remove(jspLocal);
-        localFileTree = new LocalFileTree(path);
+        localFileTree = new LocalFileTree(path, this);
         jspLocal = new JScrollPane(localFileTree);
+//        lblFilePath = new JLabel(localFileTree.getFilePath());
+//        lblFilePath = new JLabel();
         panelCenterMidRight.add(jspLocal);
         panelCenterMidRight.updateUI();
     }
