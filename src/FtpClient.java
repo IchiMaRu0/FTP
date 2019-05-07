@@ -1,6 +1,9 @@
 import java.io.*;
+import java.net.InetSocketAddress;
 import java.net.Socket;
+import java.net.SocketTimeoutException;
 import java.util.*;
+import java.util.concurrent.TimeoutException;
 
 public class FtpClient {
     private String username;
@@ -27,7 +30,14 @@ public class FtpClient {
 
     public void connect() throws Exception {
         //create socket
-        Socket socket = new Socket(host, PORT);
+//        Socket socket = new Socket(host, PORT);
+
+        Socket socket = new Socket();
+        try {
+            socket.connect(new InetSocketAddress(host, PORT), 1000);
+        }catch (SocketTimeoutException e){
+            throw new Exception("Connect timeout");
+        }
         commandIn = new BufferedReader(new InputStreamReader(socket.getInputStream()));
         commandOut = new BufferedWriter(new OutputStreamWriter(socket.getOutputStream()));
         String msg = commandIn.readLine();
@@ -144,23 +154,25 @@ public class FtpClient {
         toPASV();
         inBinary();
         File file = new File(filePath);
+        BufferedInputStream dataIn = new BufferedInputStream(new FileInputStream(file));
         if (file.exists()) {
-            long size = file.length();
-            commandOut.write("REST " + size + "\r\n");
+            commandOut.write("APPE " + fileName + "\r\n");
             commandOut.flush();
             commandIn.readLine();
         }
+        commandOut.write("STOR " + fileName + "\r\n");
+        commandOut.flush();
+        System.out.println(commandIn.readLine());
         Socket dataSocket = new Socket(host, port);
-        commandOut.write("STOR " + fileName);
         BufferedOutputStream dataOut = new BufferedOutputStream(dataSocket.getOutputStream());
-        FileInputStream dataIn = new FileInputStream(file);
         int n;
         byte[] buffer = new byte[1024];
         while ((n = dataIn.read(buffer, 0, 1024)) > 0)
             dataOut.write(buffer, 0, n);
         commandIn.readLine();
-        dataIn.close();
+        dataOut.flush();
         dataOut.close();
+        dataIn.close();
         dataSocket.close();
     }
 

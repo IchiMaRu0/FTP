@@ -4,10 +4,8 @@ import java.io.FileFilter;
 import java.util.*;
 import javax.swing.*;
 import javax.swing.border.EmptyBorder;
-import javax.swing.event.TreeExpansionEvent;
 import javax.swing.event.TreeSelectionEvent;
 import javax.swing.event.TreeSelectionListener;
-import javax.swing.event.TreeWillExpandListener;
 import javax.swing.filechooser.FileSystemView;
 import javax.swing.tree.DefaultTreeCellRenderer;
 import javax.swing.tree.TreeNode;
@@ -23,7 +21,6 @@ public class LocalFileTree extends JTree {
 
     private String filePath;
     private String fileName;
-    private JLabel fileLabel;
 
     public String getFilePath() {
         return filePath;
@@ -249,13 +246,10 @@ public class LocalFileTree extends JTree {
             public void valueChanged(TreeSelectionEvent e) {
                 FileTreeNode node = (FileTreeNode) e.getPath().getLastPathComponent();
                 fileName = node.file.getName();
-                System.out.println(fileName);
                 filePath = node.file.getParent() + "/" + node.file.getName();
-                System.out.println("select " + filePath);
                 myGUI.getLblFilePath().setText(filePath);
             }
         });
-//        this.tree.addTreeSelectionListener(new myListener());
         JScrollPane jsp = new JScrollPane(this.tree);
         jsp.setBorder(new EmptyBorder(0, 0, 0, 0));
         this.add(jsp, BorderLayout.CENTER);

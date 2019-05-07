@@ -40,6 +40,7 @@ public class clientGUI extends JFrame {
     private static FtpClient ftp;
     private String desPath = "";
     private ProgressThread progressThread;
+    private UploadProgressThread uploadProgressThread;
     private DownloadThread downloadThread;
     private UploadThread uploadThread;
 
@@ -96,7 +97,7 @@ public class clientGUI extends JFrame {
                 String fileName = fileTree.getFileName();
                 String filePath = fileTree.getFilePath();
                 if (fileName.equals("")) {
-                    JOptionPane.showMessageDialog(null, "Please select a file to download", "Eessage", JOptionPane.PLAIN_MESSAGE);
+                    JOptionPane.showMessageDialog(null, "Please select a file to download", "Message", JOptionPane.PLAIN_MESSAGE);
                     return;
                 }
                 String desDic = lblDestDir.getText();
@@ -138,14 +139,17 @@ public class clientGUI extends JFrame {
                 String fileName = localFileTree.getFileName();
                 String filePath = localFileTree.getFilePath();
                 if (fileName.equals("")) {
-                    JOptionPane.showMessageDialog(null, "Please select a file to download", "Eessage", JOptionPane.PLAIN_MESSAGE);
+                    JOptionPane.showMessageDialog(null, "Please select a file to download", "Message", JOptionPane.PLAIN_MESSAGE);
                     return;
                 }
-                String desDic = lblDestDir.getText();
-                desPath = desDic + "/" + fileName;
+                if (!fileName.contains(".")){
+                    JOptionPane.showMessageDialog(null, "Cannot upload a directory", "Message", JOptionPane.PLAIN_MESSAGE);
+                    return;
+                }
+                desPath = "/" + fileName;
                 File file = new File(desPath);
                 if (file.exists()) {
-                    int n = JOptionPane.showConfirmDialog(null, "File exists. Do you want to overide it?", "Message", JOptionPane.YES_NO_OPTION, JOptionPane.PLAIN_MESSAGE);
+                    int n = JOptionPane.showConfirmDialog(null, "File exists. Do you want to override it?", "Message", JOptionPane.YES_NO_OPTION, JOptionPane.PLAIN_MESSAGE);
                     if (n == JOptionPane.NO_OPTION) {
                         btnUpload.setEnabled(true);
                         btnUpload.setText("Upload");
@@ -153,24 +157,21 @@ public class clientGUI extends JFrame {
                     }
                     file.delete();
                 }
-                btnPause.setEnabled(true);
-                btnUpload.setEnabled(false);
-                btnUpload.setText("Uploading");
-                int size;
-                try {
-                    size = ftp.getSize(filePath);
-                } catch (Exception ex) {
-                    JOptionPane.showMessageDialog(null, ex.getMessage(), "Error", JOptionPane.PLAIN_MESSAGE);
-                    return;
-                }
+
+//                int size;
+//                try {
+//                    size = ftp.getSize(desPath);
+//                } catch (Exception ex) {
+//                    JOptionPane.showMessageDialog(null, ex.getMessage(), "Error", JOptionPane.PLAIN_MESSAGE);
+//                    return;
+//                }
 //                progBar.setMinimum(0);
 //                progBar.setMaximum(size);
 //                progBar.setValue(0);
                 panelBottom.updateUI();
-                progressThread = new ProgressThread(progBar, desPath, size);
-                uploadThread = new UploadThread(ftp, filePath, fileName, desDic, size, btnUpload);
-                progressThread.start();
+                uploadThread = new UploadThread(ftp, filePath, fileName, desPath, btnUpload);
                 uploadThread.start();
+
             }
         });
 
@@ -191,7 +192,9 @@ public class clientGUI extends JFrame {
                 progBar.setValue(0);
                 JOptionPane.showMessageDialog(null, "Mission cancelled", "Message", JOptionPane.PLAIN_MESSAGE);
                 btnDownload.setText("Download");
+                btnUpload.setText("Upload");
                 btnDownload.setEnabled(true);
+                btnUpload.setEnabled(true);
                 btnPause.setEnabled(true);
             }
         });
@@ -217,7 +220,6 @@ public class clientGUI extends JFrame {
             public void actionPerformed(ActionEvent e) {
                 JFileChooser chooser = new JFileChooser();
                 chooser.setDialogTitle("Please choose a directory");
-                //chooser.setMultiSelectionEnabled(false);//最多只能选一个文件
                 chooser.setApproveButtonText("OK");
                 chooser.setFileSelectionMode(JFileChooser.DIRECTORIES_ONLY);
                 FileNameExtensionFilter filter = new FileNameExtensionFilter("directory", "./");
@@ -269,8 +271,6 @@ public class clientGUI extends JFrame {
         panelCenterMidRight.remove(jspLocal);
         localFileTree = new LocalFileTree(path, this);
         jspLocal = new JScrollPane(localFileTree);
-//        lblFilePath = new JLabel(localFileTree.getFilePath());
-//        lblFilePath = new JLabel();
         panelCenterMidRight.add(jspLocal);
         panelCenterMidRight.updateUI();
     }

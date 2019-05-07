@@ -90,10 +90,7 @@ class FileTreeRenderer extends DefaultTreeCellRenderer {
     }
 
     @Override
-    public Component getTreeCellRendererComponent(javax.swing.JTree tree,
-                                                  java.lang.Object value,
-                                                  boolean sel,
-                                                  boolean expanded,
+    public Component getTreeCellRendererComponent(javax.swing.JTree tree, java.lang.Object value, boolean sel, boolean expanded,
                                                   boolean leaf,
                                                   int row,
                                                   boolean hasFocus) {
@@ -106,7 +103,6 @@ class FileTreeRenderer extends DefaultTreeCellRenderer {
             label.setOpaque(false);
             return label;
         }
-        //so stupid
         File file = null;
         try {
             if (name.contains(".") && !name.endsWith("."))

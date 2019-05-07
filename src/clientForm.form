@@ -85,7 +85,7 @@
                   <maximumSize width="9999" height="9999"/>
                   <minimumSize width="0" height="16"/>
                   <preferredSize width="200" height="16"/>
-                  <text value="this is a test sentence to see the label postition"/>
+                  <text value="this is a label"/>
                 </properties>
               </component>
               <hspacer id="65565">
@@ -108,7 +108,7 @@
                 <properties>
                   <minimumSize width="400" height="16"/>
                   <preferredSize width="300" height="16"/>
-                  <text value="test test"/>
+                  <text value="this is another label"/>
                 </properties>
               </component>
             </children>
@@ -139,7 +139,7 @@
                   <minimumSize width="0" height="16"/>
                   <opaque value="false"/>
                   <preferredSize width="350" height="16"/>
-                  <text value="this is a test sentence to see the label position too"/>
+                  <text value="this is a test sentence to see the label position"/>
                 </properties>
               </component>
               <component id="dc81c" class="javax.swing.JButton" binding="btnChoose">
